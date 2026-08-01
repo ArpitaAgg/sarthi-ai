@@ -30,12 +30,13 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded static files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Root landing endpoint
-app.get('/', (_req: Request, res: Response) => {
+// Root landing & health endpoints
+app.get(['/', '/health', '/api'], (_req: Request, res: Response) => {
   res.status(200).json({
     name: 'Saarthi TaskEngine API',
     version: '1.0.0',
     status: 'ONLINE',
+    message: 'Saarthi TaskEngine REST API server is live and accepting connections.',
     documentation: 'See README.md & postman_collection.json',
     endpoints: {
       health: 'GET /health',
@@ -56,11 +57,6 @@ app.get('/', (_req: Request, res: Response) => {
       },
     },
   });
-});
-
-// Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
 
 // API Routes
