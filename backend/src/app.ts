@@ -9,11 +9,18 @@ import { NotFoundError } from './utils/AppError';
 const app = express();
 
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+const allowedOrigins = [clientUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'];
 
 // Security and utility middlewares
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({
-  origin: [clientUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());

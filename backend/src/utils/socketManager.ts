@@ -24,7 +24,7 @@ export class SocketManager {
 
     this.io = new SocketIOServer(httpServer, {
       cors: {
-        origin: [clientUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+        origin: true,
         methods: ['GET', 'POST'],
         credentials: true,
       },
