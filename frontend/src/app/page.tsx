@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { RootState } from '../store';
 import { initializeAuth } from '../store/authSlice';
 import Navbar from '../components/Navbar';
-import LoginPage from './login/page';
 
 // Dynamic Imports & Lazy Loading for heavy dashboard widgets
 const DashboardStats = dynamic(() => import('../components/DashboardStats'), {
@@ -36,6 +36,7 @@ const TaskTable = dynamic(() => import('../components/TaskTable'), {
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
   const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
@@ -43,8 +44,14 @@ export default function HomePage() {
     dispatch(initializeAuth());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (mounted && !isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [mounted, isLoading, isAuthenticated, router]);
+
   // Loading state during SSR hydration pass
-  if (!mounted || isLoading) {
+  if (!mounted || isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg" role="status" aria-label="Loading platform">
         <div className="flex flex-col items-center gap-3">
@@ -53,11 +60,6 @@ export default function HomePage() {
         </div>
       </div>
     );
-  }
-
-  // If unauthenticated, render LoginPage directly
-  if (!isAuthenticated) {
-    return <LoginPage />;
   }
 
   // Render main dashboard with dynamic lazy-loaded components
