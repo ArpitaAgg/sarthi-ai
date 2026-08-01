@@ -4,6 +4,7 @@ import { addTaskToQueue } from '../queues/taskQueue';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../utils/AppError';
 import { SocketManager } from '../utils/socketManager';
 import { redisClient } from '../config/redis';
+import { logger } from '../utils/logger';
 
 export class TaskService {
   private taskRepository: TaskRepository;
@@ -47,17 +48,29 @@ export class TaskService {
       userId,
     });
 
-    // Enqueue job to BullMQ
-    await addTaskToQueue(task.id, userId, task.type, task.priority, delayMs);
+    // Enqueue job to BullMQ (resilient)
+    try {
+      await addTaskToQueue(task.id, userId, task.type, task.priority, delayMs);
+    } catch (queueErr) {
+      logger.error(`⚠️ Non-blocking: Could not enqueue task ${task.id} to BullMQ:`, queueErr);
+    }
 
-    // Invalidate Redis dashboard cache
-    await redisClient.del(`dashboard:stats:${userId}`);
-    await redisClient.del('dashboard:stats:global');
+    // Invalidate Redis dashboard cache (resilient)
+    try {
+      await redisClient.del(`dashboard:stats:${userId}`);
+      await redisClient.del('dashboard:stats:global');
+    } catch (cacheErr) {
+      logger.error('⚠️ Non-blocking: Redis cache invalidation failed:', cacheErr);
+    }
 
-    // Notify real-time clients
-    const socketManager = SocketManager.getInstance();
-    socketManager.emitToUser(userId, 'task:created', task);
-    socketManager.emitToAll('dashboard:updated', { event: 'TASK_CREATED', taskId: task.id });
+    // Notify real-time clients (resilient)
+    try {
+      const socketManager = SocketManager.getInstance();
+      socketManager.emitToUser(userId, 'task:created', task);
+      socketManager.emitToAll('dashboard:updated', { event: 'TASK_CREATED', taskId: task.id });
+    } catch (socketErr) {
+      logger.error('⚠️ Non-blocking: WebSocket emission failed:', socketErr);
+    }
 
     return task;
   }
