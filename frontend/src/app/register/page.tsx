@@ -28,7 +28,8 @@ export default function RegisterPage() {
       dispatch(logout());
       router.push(`/login?registered=true&email=${encodeURIComponent(email)}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const errMsg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+      setError(errMsg);
     } finally {
       setLoading(false);
     }

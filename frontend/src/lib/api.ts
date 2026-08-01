@@ -4,6 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -20,12 +21,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: auto refresh token on 401
+// Response interceptor: auto refresh token on 401 (excluding auth routes)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthRoute = originalRequest?.url?.includes('/auth/login') || 
+                        originalRequest?.url?.includes('/auth/register') || 
+                        originalRequest?.url?.includes('/auth/refresh-token');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refreshToken');
