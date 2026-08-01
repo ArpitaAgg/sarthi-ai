@@ -53,6 +53,14 @@ export default function TaskModal({ isOpen, onClose, onSuccess, taskToEdit }: Ta
     }
   }, [taskToEdit, isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,14 +128,6 @@ export default function TaskModal({ isOpen, onClose, onSuccess, taskToEdit }: Ta
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   const priorityOptions = [
     { label: 'LOW', value: 'LOW', color: 'bg-slate-800 text-slate-300 border-slate-700' },
