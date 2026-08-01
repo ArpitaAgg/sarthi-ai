@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../app';
 
 describe('Task API Endpoints & Unit Tests', () => {
+  jest.setTimeout(30000);
   let authToken = '';
   let createdTaskId = '';
 

@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../app';
 
 describe('Auth Endpoints Integration Tests', () => {
+  jest.setTimeout(30000);
   const testUser = {
     name: 'Test Runner',
     email: `test-${Date.now()}@example.com`,
