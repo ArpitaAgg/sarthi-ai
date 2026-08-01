@@ -5,6 +5,8 @@ import path from 'path';
 import routes from './routes';
 import { errorHandler } from './middlewares/errorMiddleware';
 import { NotFoundError } from './utils/AppError';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerDocument } from './config/swagger';
 
 const app = express();
 
@@ -29,6 +31,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded static files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+// Swagger UI Interactive API Documentation
+app.use(['/docs', '/api/docs'], swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Root landing & health endpoints
 app.get(['/', '/health', '/api'], (_req: Request, res: Response) => {
